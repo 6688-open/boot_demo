@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.dj.boot.mapper.goods.GoodsCategoryDao">
+    <resultMap id="DtoResultMap" type="com.dj.boot.pojo.goods.GoodsCategoryDto">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="category_no" property="categoryNo" jdbcType="VARCHAR"/>
+        <result column="out_category_no" property="outCategoryNo" jdbcType="VARCHAR"/>
+        <result column="category_name" property="categoryName" jdbcType="VARCHAR"/>
+        <result column="pid" property="pid" jdbcType="BIGINT"/>
+        <result column="level" property="level" jdbcType="TINYINT"/>
+        <result column="tree_code" property="treeCode" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="tenant_id" property="tenantId" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        <trim prefix="" suffix="" suffixOverrides=",">
+            id,
+            category_name,
+            category_no,
+            out_category_no,
+            status,
+            pid,
+            level,
+            tenant_id,
+            create_time,
+            update_time,
+            create_user,
+            update_user
+
+        </trim>
+    </sql>
+
+    <!-- 根据条件查询分页 -->
+    <select id="queryViewList" resultMap="DtoResultMap">
+        select id,category_no,out_category_no,category_name,status,pid,level,tree_code,tenant_id
+        from goods_category
+        where is_delete = 0
+        <if test="po.tenantId != null and po.tenantId != ''">
+            and tenant_id = #{po.tenantId,jdbcType=VARCHAR}
+        </if>
+        <if test="po.level != null">
+            and level = #{po.level,jdbcType=TINYINT}
+        </if>
+        <if test="po.categoryName != null  and po.categoryName != ''">
+            and category_name like concat('%',#{po.categoryName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="po.categoryNo != null and po.categoryNo != ''">
+            and category_no = #{po.categoryNo,jdbcType=VARCHAR}
+        </if>
+        <if test="po.outCategoryNo != null and po.outCategoryNo != ''">
+            and out_category_no = #{po.outCategoryNo,jdbcType=VARCHAR}
+        </if>
+        <if test="po.status != null">
+            and status = #{po.status,jdbcType=TINYINT}
+        </if>
+        <if test="po.ppTreeCode != null and po.ppTreeCode != ''">
+            and tree_code like concat(#{po.ppTreeCode,jdbcType=VARCHAR},'%')
+        </if>
+        order by tree_code asc
+    </select>
+
+
+    <!-- 根据条件查询分页 -->
+    <select id="queryChildList" resultMap="DtoResultMap">
+        select id,category_no,out_category_no,category_name,status,pid,level,tree_code,tenant_id
+        from goods_category
+        where is_delete = 0
+        <if test="po.tenantId != null and po.tenantId != ''">
+            and tenant_id = #{po.tenantId,jdbcType=VARCHAR}
+        </if>
+        <if test="po.pid != null">
+            and pid = #{po.pid,jdbcType=BIGINT}
+        </if>
+        order by tree_code asc
+    </select>
+
+
+    <!-- 查询所用父级数据 -->
+    <select id="queryPPList" resultMap="DtoResultMap">
+        select id,category_no,out_category_no,category_name,status,pid,level,tree_code,tenant_id
+        from goods_category
+        where is_delete = 0
+        <if test='po.tenantId != null and po.tenantId != ""'>
+            and tenant_id = #{po.tenantId,jdbcType=VARCHAR}
+        </if>
+        <if test='po.ppTreeCode != null and po.ppTreeCode != ""'>
+            and tree_code like concat(#{po.ppTreeCode,jdbcType=VARCHAR},'%')
+        </if>
+    </select>
+
+
+    <!-- 根据id查询 -->
+    <select id="getGoodsCategoryById" resultMap="DtoResultMap" >
+        select id,category_no,out_category_no,category_name,status,pid,level,tree_code,tenant_id
+        from goods_category
+        where id = #{id,jdbcType=BIGINT} and is_delete=0
+    </select>
+
+    <!-- 插入实体 -->
+    <insert id="insertGoodsCategory" parameterType="com.dj.boot.pojo.goods.GoodsCategory">
+        insert into goods_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            category_no,
+            out_category_no,
+            category_name,
+            pid,
+            status,
+            level,
+            tree_code,
+            tenant_id,
+            create_time,
+            update_time,
+            create_user,
+            update_user,
+            is_delete,
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=BIGINT},
+            #{categoryNo,jdbcType=VARCHAR},
+            #{outCategoryNo,jdbcType=VARCHAR},
+            #{categoryName,jdbcType=VARCHAR},
+            #{pid,jdbcType=BIGINT},
+            #{status,jdbcType=TINYINT},
+            #{level,jdbcType=TINYINT},
+            #{treeCode,jdbcType=VARCHAR},
+            #{tenantId,jdbcType=VARCHAR},
+            now(),
+            now(),
+            #{createUser,jdbcType=VARCHAR},
+            #{updateUser,jdbcType=VARCHAR},
+            0,
+        </trim>
+    </insert>
+    <!-- 插入实体 -->
+    <insert id="batchInsertGoodsCategory" parameterType="com.dj.boot.pojo.goods.GoodsCategory">
+        insert into goods_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            category_no,
+            out_category_no,
+            category_name,
+            pid,
+            status,
+            level,
+            tree_code,
+            tenant_id,
+            create_time,
+            update_time,
+            create_user,
+            update_user,
+            is_delete,
+        </trim>
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{item.id,jdbcType=BIGINT},
+            #{item.categoryNo,jdbcType=VARCHAR},
+            #{item.outCategoryNo,jdbcType=VARCHAR},
+            #{item.categoryName,jdbcType=VARCHAR},
+            #{item.pid,jdbcType=BIGINT},
+            #{item.status,jdbcType=TINYINT},
+            #{item.level,jdbcType=TINYINT},
+            #{item.treeCode,jdbcType=VARCHAR},
+            #{item.tenantId,jdbcType=VARCHAR},
+            now(),
+            now(),
+            #{item.createUser,jdbcType=VARCHAR},
+            #{item.updateUser,jdbcType=VARCHAR},
+            0,
+        </trim>
+        </foreach>
+    </insert>
+    <!-- 修改实体 -->
+    <update id="updateGoodsCategory" parameterType="com.dj.boot.pojo.goods.GoodsCategory">
+        update goods_category
+        <set>
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="categoryName != null">
+                    category_name = #{categoryName,jdbcType=VARCHAR},
+                </if>
+                <if test="outCategoryNo != null">
+                    out_category_no = #{outCategoryNo,jdbcType=VARCHAR},
+                </if>
+                <if test="status != null">
+                    status = #{status,jdbcType=TINYINT},
+                </if>
+                <if test="updateUser != null">
+                    update_user = #{updateUser,jdbcType=VARCHAR},
+                </if>
+                update_time=now()
+            </trim>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <!--启用停用分类-->
+    <update id="startOrStop" parameterType="com.dj.boot.pojo.goods.GoodsCategoryFormDto">
+        update goods_category
+        set status= #{po.status,jdbcType=TINYINT},  update_user = #{po.updateUser,jdbcType=VARCHAR}
+        where tenant_id = #{po.tenantId,jdbcType=VARCHAR}
+        and tree_code like concat(#{po.pTreeCode,jdbcType=VARCHAR},'%')
+     </update>
+
+
+    <!-- 检查分类名称在租户下重复数量 -->
+    <select id="getDuplicateQty" resultType="Integer"
+            parameterType="com.dj.boot.pojo.goods.GoodsCategory">
+        select count(1)
+        from goods_category
+        where tenant_id = #{po.tenantId,jdbcType=VARCHAR}
+        and ( 1=2
+        <if test="po.outCategoryNo != null">
+            or out_category_no = #{po.outCategoryNo,jdbcType=VARCHAR}
+        </if>
+        <if test="po.categoryName != null">
+            or category_name = #{po.categoryName,jdbcType=VARCHAR}
+        </if>
+        )
+        <if test="po.id != null">
+            and id != #{po.id,jdbcType=BIGINT}
+        </if>
+        and is_delete=0
+    </select>
+
+    <!-- 删除实体 -->
+    <update id="deleteGoodsCategory">
+        update goods_category
+        <set>
+            is_delete=1
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <!-- 查询总数 -->
+    <select id="getCount"  resultType="Integer">
+        select
+          count(1)
+        from
+          goods_category
+        where
+          is_delete=0
+        <if test="po.categoryName != null  and po.categoryName != ''">
+            and category_name = #{po.categoryName,jdbcType=VARCHAR}
+        </if>
+        <if test="po.level != null">
+            and level = #{po.level,jdbcType=TINYINT}
+        </if>
+    </select>
+</mapper>

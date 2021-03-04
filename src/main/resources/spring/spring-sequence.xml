@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+      "
+	default-lazy-init="false" default-autowire="byName">
+
+	<!--配置数据源 -->
+<!--	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"-->
+<!--		destroy-method="close">-->
+<!--		<property name="driverClassName" value="${jdbc.mysql.driver}" />-->
+<!--		<property name="url" value="${jdbc.mysql.url}" />-->
+<!--		<property name="username" value="${username}" />-->
+<!--		<property name="password" value="${password}" />-->
+<!--		<property name="initialSize" value="${dbcp.initialSize}" />-->
+<!--		<property name="maxActive" value="${dbcp.maxActive}" />-->
+<!--		<property name="maxIdle" value="${dbcp.maxIdle}" />-->
+<!--		<property name="minIdle" value="${dbcp.minIdle}" />-->
+<!--        <property name="maxWait" value="${dbcp.maxWait}"/>-->
+<!--        <property name="defaultAutoCommit" value="${dbcp.defaultAutoCommit}"/>-->
+<!--        <property name="timeBetweenEvictionRunsMillis" value="${dbcp.timeBetweenEvictionRunsMillis}"/>-->
+<!--        <property name="numTestsPerEvictionRun" value="${dbcp.numTestsPerEvictionRun}"/>-->
+<!--        <property name="minEvictableIdleTimeMillis" value="${dbcp.minEvictableIdleTimeMillis}"/>-->
+<!--        <property name="testWhileIdle" value="${dbcp.testWhileIdle}"/>-->
+<!--        <property name="testOnBorrow" value="${dbcp.testOnBorrow}"/>-->
+<!--        <property name="testOnReturn" value="${dbcp.testOnReturn}"/>-->
+<!--        <property name="validationQuery" value="${dbcp.validationQuery}"/>-->
+<!--        <property name="removeAbandoned" value="${dbcp.removeAbandoned}"/>-->
+<!--        <property name="removeAbandonedTimeout" value="${dbcp.removeAbandonedTimeout}"/>-->
+<!--        <property name="logAbandoned" value="${dbcp.logAbandoned}"/>-->
+<!--	</bean>-->
+<!--	&lt;!&ndash;配置事务 &ndash;&gt;-->
+<!--	<bean id="txManager"-->
+<!--		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">-->
+<!--		<property name="dataSource" ref="dataSource" />-->
+<!--	</bean>-->
+<!--	<bean id="transactionTemplate"-->
+<!--		class="org.springframework.transaction.support.TransactionTemplate">-->
+<!--		<property name="transactionManager" ref="txManager" />-->
+<!--	</bean>-->
+
+
+	<!-- 初始化主键服务 可以使用同一配置进行动态切换 -->
+	<bean id="sequenceService" class="com.dj.boot.service.pk.impl.SequenceServiceImpl">
+		<property name="currentSequenceManagerIndex" value="2"></property>
+		<property name="sequenceManagerMap">
+			<map>
+				<!--                <entry key="0" value-ref="jimdbSequenceManager"/>-->
+				<!--                <entry key="1" value-ref="mysqlSequenceManager"/>-->
+				<entry key="2" value-ref="sequenceManager" />
+			</map>
+		</property>
+	</bean>
+
+
+	<!-- 初始化主键服务,针对仓库等短长度序列号使用此单主mysql -->
+	<bean id="simpleSequenceService" class="com.dj.boot.service.pk.impl.SequenceServiceImpl">
+		<property name="currentSequenceManagerIndex" value="2"></property>
+		<property name="sequenceManagerMap">
+			<map>
+				<entry key="2" value-ref="sequenceManager" />
+			</map>
+		</property>
+	</bean>
+
+
+	<!-- DAO -->
+	<bean id="sequenceDao" class="com.dj.boot.dao.impl.SequenceDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="transactionTemplate" ref="transactionTemplate"></property>
+	</bean>
+	<bean id="sequenceManager"
+		  class="com.dj.boot.manager.impl.DefaultSequenceManagerImpl">
+		<property name="sequenceDao" ref="sequenceDao"></property>
+	</bean>
+</beans>

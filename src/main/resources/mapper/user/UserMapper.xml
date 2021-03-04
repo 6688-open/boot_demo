@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dj.boot.mapper.user.UserMapper">
+
+
+    <!--
+     1  locate
+         判断字符串（string）中是否包含另一个字符串（subStr）
+         locate(subStr,string) ：函数返回subStr在string中出现的位置
+         // 如果字符串 string 包含 subStr
+        locate(subStr,string) > 0
+
+        // 如果字符串 string 不包含 subStr
+        locate(subStr,string) = 0
+        用法一致
+     2 POSITION('古' IN user_name)
+     3 INSTR(user_name, '古')
+    -->
+    <sql id="Base_Column_List_Address">
+        case
+            when  address_name='新疆维吾尔自治区' then '新疆'
+            when  address_name='内蒙古自治区' then '内蒙古'
+            when address_name='宁夏回族自治区' then '宁夏'
+            when address_name='西藏自治区' then '西藏'
+            when address_name='广西壮族自治区' then '广西'
+            when <![CDATA[ LOCATE('省',address_name) !=0 ]]>  then replace(address_name,'省','')
+            when <![CDATA[ LOCATE('市',address_name) !=0 ]]>  then replace(address_name,'市','')
+            when <![CDATA[ LOCATE('特別行政區',address_name) !=0 ]]>  then replace(address_name,'特別行政區','')
+            else address_name
+            end as address_name
+    </sql>
+
+
+
+    <sql id="Base_Column_List">
+        <trim prefix="" suffix="" suffixOverrides=",">
+            id,
+            sex,
+            user_name,
+            create_time,
+            salt,
+            password,
+            total_num,
+            user_num,
+        </trim>
+    </sql>
+    <select id="findUserList" resultType="com.dj.boot.pojo.User">
+        SELECT
+          <include refid="Base_Column_List"/>
+        FROM dj_user
+        <where>
+            <if test="userDto.ids != null and userDto.ids.size() > 0">
+                and id in   /*加注解 ids ---> ids    不加注解  ---> list/array     放到对象里要 userDto.ids */
+                <foreach collection="userDto.ids" separator="," open="(" close=")" item="id">
+                    #{id,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+            <if test="userDto.userName != null and userDto.userName != ''">
+                and  user_name = #{userDto.userName}
+            </if>
+            -- cast(po.id AS char) LIKE   CONCAT('%', #{orderNumber}, '%')
+            <if test="userDto.userName != null and userDto.userName != ''">
+                and user_name LIKE  CONCAT('%', #{userDto.userName}, '%')
+            </if>
+            <!--<if test="startAge != null">
+                and u.age &gt;= #{startAge}
+            </if>
+            <if test="endAge != null">
+                and u.age &lt;= #{endAge}
+            </if>-->
+--             and u.age &lt;&gt; 5
+            <if test="userDto.createTime != null">
+                and create_time <![CDATA[<=]]> #{userDto.createTime,jdbcType=TIMESTAMP}
+            </if>
+
+            <choose>
+                <when test="userDto.returnFlag">
+                    and sex <![CDATA[<=]]> #{userDto.sex}
+                </when>
+                <otherwise>
+                    and sex <![CDATA[>]]> #{userDto.sex}
+                </otherwise>
+            </choose>
+
+
+
+        </where>
+    </select>
+    <select id="getCount" resultType="java.lang.Long">
+        SELECT count(*) FROM dj_user
+    </select>
+
+
+    <!--    自动生成序列号
+            @i:=@i+1表示序号依次加1
+            后面的查询SELECT @i := 0是为了将i进行初始化每次查询的序列号都会从1开始进行排序生成序列号
+
+            2 IFNULL(x, 0) null就是0
+            3 format(40, 2) 保留两位数40.00
+            4 concat(str1, str2,...)
+            5 concat_ws("-", "wang", "jia", "123")  > wang-jia-123
+            6 group_concat( DISTINCT id ORDER BY id DESC SEPARATOR '_') AS groupConcat
+              配合GROUP BY 分组时 将某个字段 排序 去重 链接起来
+            7 round(40.51, 2)  四舍五入  保留几位数
+            8 replace("111,222,333",",", " ")   将 , 替换成 “ ”
+
+            9 SELECT NOW(),CURDATE(),CURTIME()  2020-07-22 14:27:42 / 	2020-07-22	/ 14:27:42
+
+            10 DATE_FORMAT(create_time, "%Y-%m-%d") DAY 日期格式化  date_format(create_date, '%Y-%m-%d %H:%i:%s')
+    -->
+    <select id="getList" resultType="com.dj.boot.pojo.User">
+        SELECT
+            (@i :=@i + 1) AS idx,
+			replace("111,222,333",",", " ") AS replaceNum,
+            round(40.51, 2) AS roundNum,
+			concat_ws("-", "wang", "jia", "123") AS concatWs,
+			group_concat( DISTINCT id ORDER BY id DESC SEPARATOR '_') AS groupConcat,
+            concat( format( IFNULL( ( u.user_num / u.total_num ) * 100, 0 ), 2 ), "%" ) distributeRate,
+			u.*
+        FROM
+            dj_user u
+        JOIN (SELECT @i := 0) AS i
+
+        GROUP BY u.user_name
+    </select>
+
+
+    <!--<![CDATA[>=]]>
+    在使用mybatis 时我们sql是写在xml 映射文件中，如果写的sql中有一些特殊的字符的话，
+    在解析xml文件的时候会被转义，但我们不希望他被转义，所以我们要使用<![CDATA[ ]]>来解决。
+    -->
+
+    <!--查询近7天的每天总和  和 每天的数据总条数-->
+    <select id="getTotalNum" resultType="com.dj.boot.pojo.User">
+        SELECT
+            t1.day,
+            t2.total_num AS total_num,
+            COUNT(t2.id) number
+        FROM
+            --  连续天数表
+            (
+             SELECT
+                    @cdate := DATE_ADD(@cdate, INTERVAL - 1 DAY) DAY
+                FROM
+                    (SELECT @cdate := DATE_ADD(CURDATE(), INTERVAL + 1 DAY) FROM dj_user) t0
+                LIMIT 7
+            ) t1
+
+        LEFT JOIN
+
+            (
+            SELECT
+                id,
+								SUM(total_num) total_num,
+                DATE_FORMAT(create_time, "%Y-%m-%d") DAY
+            FROM
+                dj_user
+			GROUP BY DAY
+            ) t2
+
+        ON t2.DAY = t1.DAY
+        GROUP BY t1.`day`;
+
+    </select>
+
+
+
+    <update id="updateUserById">
+        update dj_user
+        <set>
+            <trim prefix="" suffix="" suffixOverrides=",">
+                <if test="id != null">
+                    id = #{id,jdbcType=BIGINT},
+                </if>
+                <if test="userName != null and '' != userName">
+                    user_name = #{userName,jdbcType=VARCHAR},
+                </if>
+            </trim>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <insert id="insertUser"  keyProperty="id" useGeneratedKeys="true">
+        <!--
+                selectKey:实现将主键返回的功能
+                keyProperty：领域模型(pojo)属性名
+                order：before / after sql执行前   执行后
+                由于mysql的自增原理执行完insert语句之后才将主键生成  所以这里selectKey的执行顺序为after
+                SELECT LAST_INSERT_ID()： 时mysql的函数 返回 auto_increament自增列新纪录id的值
+         -->
+        <!--  <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer" >
+             SELECT LAST_INSERT_ID()
+         </selectKey> -->
+
+--         INSERT INTO dj_user ( username , password) VALUES ( #{username} ,#{password})
+        INSERT INTO dj_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            id,
+            user_name,
+            password,
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=BIGINT},
+            #{userName,jdbcType=VARCHAR},
+            #{password,jdbcType=VARCHAR},
+        </trim>
+    </insert>
+
+    <delete id="deleteUserById" parameterType="java.lang.Integer">
+		DELETE FROM dj_user where id = #{id}
+	</delete>
+
+
+
+    <!--
+    substring(参数1，参数2，参数3)
+       参数1表示需要截取的字符串，
+       参数2表示从字符串的那个位置开始截取（字符串下标从1开始），
+       参数3表示要截取多少位，如果不写，表示截取从参数2指定的位置开始剩下的全部字符。
+       select substring("jason",1,2);
+        结果为：ja
+       select substring("jason",1);
+        结果为：jason
+       select substring("jason",2);
+        结果为：ason
+
+
+        以下是当参数2为负数的情况
+        select substring("jason",-1);
+        结果为：n
+        截取思想：从字符串末尾开始向前截取。
+        select substring("jason",-3);
+        结果为：son
+        select substring("jason",-3,1);
+        结果为：s
+        截取思想为：如果有参数3指定需要截取的位数，则是从左往右开始截取也就是从首到尾，而不是从尾到首开始。
+    -->
+    <update id="updateUser">
+        UPDATE
+		    dj_user
+        SET user_name =
+        (
+         CASE sex
+            WHEN 1 THEN  concat(SUBSTRING(user_name,1,1), '-', sex)
+
+            WHEN 2 THEN concat(SUBSTRING(user_name,1,2), '-', sex)
+
+            WHEN 3 THEN concat(SUBSTRING(user_name,1,3), '-', sex)
+            else concat(SUBSTRING(user_name,1,4), '-', sex)
+
+            END
+        )
+    </update>
+
+
+
+
+
+    <!--批量修改    mysql配置文件 &zeroDateTimeBehavior=convertToNull&allowMultiQueries=true   -->
+    <update id="updateBatch" >
+        <foreach collection="list" item="item" index="index" separator=";">
+            update dj_user
+            <set>
+                <trim suffixOverrides=",">
+                    <if test="item.userName != null and item.userName != ''">
+                        user_name = #{item.userName,jdbcType=VARCHAR},
+                    </if>
+                    <if test="item.password != null and item.password != ''">
+                        password = #{item.password,jdbcType=VARCHAR},
+                    </if>
+                    total_num = 30,
+                </trim>
+            </set>
+            where id = #{item.id,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+
+
+    <!--批量添加-->
+    <insert id="insertBatch" >
+        insert into dj_user ( <include refid="Base_Column_List" /> )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            ( null, #{item.sex}, #{item.userName}, #{item.createTime}, #{item.salt},  #{item.password} )
+        </foreach>
+    </insert>
+
+    <!--批量添加-->
+    <!--<insert id="insertBatch" >
+
+        <foreach collection="list" item="item" index="index" separator=";">
+            insert into dj_user ( <include refid="Base_Column_List" /> )
+            values
+            ( null, #{item.sex}, #{item.userName}, #{item.createTime}, #{item.salt},  #{item.password} )
+        </foreach>
+    </insert>-->
+
+
+
+
+
+    <!--当mysql的WHERE语句中出现AND OR时，使用OR组合的并列条件要用小括号把两个条件和”OR”包起来。-->
+
+    <select id="findUserListByCondition" resultType="com.dj.boot.pojo.User">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dj_user
+        <include refid="whereCondition"/>
+    </select>
+
+
+    <sql id="whereCondition">
+        <where>
+            <if test="userDto.ids != null and userDto.ids.size() > 0">
+                and id in   /*加注解 ids ---> ids    不加注解  ---> list/array     放到对象里要 userDto.ids */
+                <foreach collection="userDto.ids" separator="," open="(" close=")" item="id">
+                    #{id,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test="userDto.passwordList != null and !userDto.passwordList.isEmpty() and (userDto.userNameList == null or userDto.userNameList.isEmpty())">
+                and password in
+                <foreach collection="userDto.passwordList" separator="," open="(" close=")" item="p">
+                    #{p,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test="userDto.userNameList != null and !userDto.userNameList.isEmpty() and (userDto.passwordList == null or userDto.passwordList.isEmpty())">
+                and user_name in
+                <foreach collection="userDto.userNameList" separator="," open="(" close=")" item="n">
+                    #{n,jdbcType=VARCHAR}
+                </foreach>
+            </if>
+
+            <if test="userDto.userNameList != null and !userDto.userNameList.isEmpty() and userDto.passwordList != null and !userDto.passwordList.isEmpty()">
+                and  ( user_name in
+                <foreach collection="userDto.userNameList" separator="," open="(" close=")" item="n">
+                    #{n,jdbcType=VARCHAR}
+                </foreach>
+
+                or password in
+                <foreach collection="userDto.passwordList" separator="," open="(" close=")" item="p">
+                    #{p,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+
+        </where>
+    </sql>
+
+
+
+
+    <update id="updateBatchSaleableWarehouseStock">
+        update dj_user
+        <set>
+            total_num = total_num + case id
+            <foreach collection="userList" item="item" index="index">
+                WHEN #{item.id,jdbcType=INTEGER} THEN #{item.totalNum,jdbcType=DECIMAL}
+            </foreach>
+            END,
+            create_time = now()
+        </set>
+        where id in
+        <foreach item="item" collection="ids" index="index"
+                 open="(" separator="," close=")">
+            <![CDATA[ #{item}]]>
+        </foreach>
+    </update>
+
+
+
+
+
+
+
+</mapper>

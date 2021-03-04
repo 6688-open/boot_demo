@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dispach="http://clps.btp.jd.com/schema/dispatch"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://clps.btp.jd.com/schema/dispatch
+       http://clps.btp.jd.com/schema/dispatch.xsd">
+
+
+    <bean id="poArchiveDispatchHandler" class="com.dj.boot.configuration.dispatch.handler.PoDispatchInvocationHandler"/>
+
+    <!--运单主档-->
+    <dispach:proxy id="userService"  target-interface="com.dj.boot.service.user.UserService" default-target="active" handler-ref="poArchiveDispatchHandler">
+        <map>
+            <entry key="active" value-ref="userServiceImpl"/>
+            <entry key="archive" value-ref="userServiceArchiveImpl"/>
+        </map>
+    </dispach:proxy>
+
+</beans>

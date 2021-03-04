@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户登录</title>
+</head>
+<script th:src="@{/jquery-1.12.4.min.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/jquery-validation-1.14.0/dist/jquery.validate.min.js}"></script>
+<script th:src="@{/jquery-validation-1.14.0/dist/localization/messages_zh.js}"></script>
+<script th:src="@{/md5-min.js}"></script>
+
+<link rel="stylesheet" th:href="@{/select2-develop/dist/css/select2.min.css}" />
+<script th:src="@{/select2-develop/dist/js/select2.min.js}"></script>
+<style>
+    .error{
+        color:red;
+    }
+</style>
+<body>
+<center>
+    <h2>用  户  登  录</h2>
+    <form id="fm">
+        <p>
+            <label for="userName">用户:</label>
+            <input id="userName" name="userName" type="text" placeholder="用户名/手机号/邮箱"/>
+        </p>
+        <p>
+            <label for="password">密码:</label>
+            <input id="password" name="password" type="password" placeholder="密码">
+        </p>
+        <p>
+            <input type="submit" value="login">
+        </p>
+
+
+        <select id="deptPo" name="deptPo"  class="singleSelect" style="width: 200px;">
+            <option value="">---请选择---</option>
+            <option value="2020">   2020</option>
+            <option value="2019">   2019</option>
+            <option value="2018">   2018</option>
+        </select>
+
+
+    </form>
+
+    <a href="javascript:register()">还没有账号?点这里注册</a>
+
+    --  <a href="javascript:findPassword()">忘记密码?</a>
+
+    --  <a href="javascript:findTime()">倒计时</a>
+
+    --  <a href="javascript:findZTree()">zTree</a>
+
+    --  <a href="javascript:findDetails()">详情页面</a>
+
+    -- <a href="javascript:test()">test</a> <br> <br><br>
+
+
+    <form id = "fmt">
+        <input type='button' value='下载模板' onclick='uploadTemp()'/><br>
+        <input type="file" name="file" th:value="选择文件"/>
+        <input type='button' value='导入' onclick='importPro()'/><br>
+        <a href="javascript:exportExcel()">导出</a> <br>
+        <a href="javascript:exportExcelClps()">clps异常报备单导出</a><br>
+        <input type='button' value='导出PDF' onclick='exportPdf()'/><br>
+        <input type='button' value='下载word' onclick='downword()'/><br>
+
+    </form>
+    <!--<input type="button" value="导出" id="btn"/>-->
+
+    <br><br>
+
+    <div align="center" id = "pagediv">
+       <input type='button' value='jq传值' onclick='transmissionValue()'/>
+    </div>
+    <input id="pageNo" name="pageNo" type="text" placeholder="pageNo"/>
+    <input id="totalPage" name="totalPage" type="text" placeholder="totalPage"/>
+
+</center>
+</body>
+<script>
+
+
+    // 页面加载事件
+    $(function () {
+        /*select2 下拉框支持搜索*/
+        $('.singleSelect').select2();
+
+        // 在键盘按下并释放及提交后验证提交表单
+        $("#fm").validate({
+            errorPlacement: function(error,element) {
+                //将错误信息展示在父元素的后面
+                $(element).parent().after(error);
+            },
+            rules:{
+                /*对应input框的name值*/
+                userName: {
+                    required: true,
+                    minlength: 1
+                },
+                password: {
+                    required: true,
+                    minlength: 1
+
+                },
+            },
+            messages:{
+                userName: {
+                    required: "请输入分类名称",
+                    minlength: "分类名称至少由2个字母/数字/汉字组成"
+                },
+                password: {
+                    required: "请输入密码",
+                    minlength: "密码至少由2个字母/数字/汉字组成"
+                },
+            }
+        })
+    })
+
+
+    $.validator.setDefaults({
+        submitHandler: function(form) {
+            debugger;
+
+            var password = md5($("#password").val());
+            $("#password").val(password);
+
+            var index1 = layer.load();
+            $.post(
+                "/user/login",
+                $("#fm").serialize(),
+                function(data){
+                    if(data.code === 200){
+                        layer.msg(data.msg, {
+                            icon: 1,shade: 0.01,time: 500
+                        }, function(){
+                            debugger;
+                            const token = data.msg;
+                            const localStorage = window.localStorage;//浏览器提供的存储空间  key value
+                            localStorage.token = token;
+                            const index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                           parent.location.href = "list";
+                        });
+                    } else {
+                        layer.close(index1);
+                        layer.msg(data.msg,{icon: 5,time:500});
+                    }
+                }
+            );
+        }
+    })
+
+
+
+
+
+
+    function register(){
+        window.location.href = "/toRegister";
+    }
+    function findPassword(){
+        window.location.href = "/toFindPassword";
+    }
+
+    function findDetails(){
+        window.location.href = "/toFindDetails";
+    }
+    function findTime(){
+        window.location.href = "/toFindTime";
+    }
+    function findZTree(){
+        window.location.href = "/toFindZTree";
+    }
+
+    function test(){
+        window.location.href = "/testHtml";
+    }
+
+    function exportExcel(){
+        window.location.href = "/excel/export";
+    }
+
+    function exportExcelClps(){
+        window.location.href = "/excel/exportErrorDeviceOrderDetail";
+    }
+
+
+    //下载模板
+    function uploadTemp() {
+        window.location.href = "/excel/uploadTemp";
+    }
+    //exportPdf
+    function exportPdf() {
+        window.location.href = "/excel/exportPdf?id="+ id;
+    }
+
+
+    //downword
+    function downword() {
+        window.location.href = "/hutool/contextLoads";
+    }
+
+    //transmissionValue
+    function transmissionValue() {
+        debugger;
+        const createTime = "2020-07-14 10:57:23";
+        const id = "10";
+        let pagehtml = "";
+        pagehtml += "<input type='button' value='上一页' onclick='page(" + id + ",\"" + createTime + "\")' />";
+        pagehtml += "<input type='button' value='下一页' onclick='page(" + id + ")' />";
+        $("#pagediv").html(pagehtml);
+
+    }
+
+    /*分页*/
+    function page(pageNo,totalPage) {
+        debugger;
+        $("#pageNo").val(pageNo);
+        $("#totalPage").val(totalPage);
+        layer.msg('已经是第一页了  pageNo' + pageNo, {time: 500, icon:6});
+        layer.msg('已经是第一页了 totalPage' + totalPage, {time: 500, icon:6});
+        // if(pageNo < 1){
+        //     layer.msg('已经是第一页了', {time: 500, icon:6});
+        //     return;
+        // }
+        // if(pageNo > totalPage ){
+        //     layer.msg('已经是第一页了', {time: 500, icon:5});
+        //     return;
+        // }
+        // search();
+        const createTime = totalPage;
+        const id = pageNo;
+        let year = "";
+        if (null != totalPage && totalPage !== "") {
+            layer.msg(new Date(1564147279000).toLocaleString() + pageNo, {time: 500, icon:6});
+            const years = new Date(1564147279000).toLocaleString().substring(0, 4);
+            //截取前面4个字符
+            year = totalPage.substring(0, 4);
+        }
+        window.location.href = "/transmissionValue?id="+ id + "&year=" + year + "&createTime=" + createTime;
+    }
+
+    //上传商品表
+    function importPro() {
+        /*debugger;*/
+        var loading =  layer.load();
+        var formData = new FormData($("#fmt")[0]);
+        $.ajax({
+            url:'/excel/import', /*接口域名地址*/
+            type:'post',
+            data: formData,
+            // 告诉jQuery不要去处理发送的数据
+            processData : false,
+            // 告诉jQuery不要去设置Content-Type请求头
+            contentType : false,
+            success:function(data){
+                if(data.code == 200){
+                    layer.msg(data.msg, {icon: 6},function () {
+                        window.location.href = "/toFindPassword"
+                    })
+                    return
+                }
+                layer.close(loading);
+                layer.msg(data.msg, {icon: 5});
+            },
+            error:function (data) {
+                layer.close(loading);
+                layer.msg(data.msg, {icon: 7,time: 1500});
+            }
+        })
+    }
+
+
+
+
+
+
+
+    $("#btn").click(function () {
+        $.post(
+            "/excel/export",
+            "",
+            function(data){
+                alert("Data Loaded: " + data);
+            });
+
+    })
+
+
+
+
+
+
+</script>
+</html>

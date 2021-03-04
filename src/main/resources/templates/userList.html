@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"></meta>
+<title>Insert title here</title>
+</head>
+<body>
+<h2 > TEST   444</h2>
+<br><br><br><br><br>
+<table width="60%" border="1" cellspacing="1" cellpadding="0">
+    <tr>
+        <td>id111</td>
+        <td>id</td>
+        <td>性別</td>
+        <td>订单状态</td>
+        <td>if</td>
+        <td>name</td>
+        <td>select</td>
+    </tr>
+    <tr th:each="user : ${userList}">
+    <td th:text="${user.id}"></td>
+    <td><input type="text" th:value="${user.id}" /></td>
+    <td>男：<input type="radio" th:selected="${user.id % 2 != 0}" /></td>
+    <td th:switch="${user.id}">
+        <span th:case="3">未支付</span>
+        <span th:case="4">已支付</span>
+        <span th:case="5">订单已完成</span>
+        <span th:case="*">订单默认状态</span>
+    </td>
+    <td><input type="radio" th:if="${user.id % 2 == 0}"/>true</td>
+    <td th:text="${user.userName}"></td>
+    <td>
+        <select>
+            <option>请选择</option>
+            <option th:selected="${user.id % 2 == 0}">北京</option>
+            <option value="2">南京</option>
+        </select>
+    </td>
+        <td>
+            <select name="ChanneltypeID" >
+                <option>请选择</option>
+                <option th:each="dict : ${businessSignList}" th:value="${dict.get('code')}" th:text="${dict.get('name')}">
+            </select>
+        </td>
+        <!-- <td><a th:href="${user.url}" target="_blank">点我</a></td> -->
+    </tr>
+</table>
+</body>
+</html>

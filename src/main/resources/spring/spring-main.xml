@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd" default-lazy-init="false">
+    <context:annotation-config/>
+
+    <context:component-scan base-package="com.dj,com.dj.boot"/>
+    <bean id="propertyConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        <property name="locations">
+            <list>
+                <value>classpath:prop/application.properties</value>
+<!--                <value>classpath:prop/dev_dbcp.properties</value>-->
+
+<!--                <value>classpath:prop/cache/jimdb.properties</value>-->
+<!--                <value>classpath:prop/mq/jmq.properties</value>-->
+            </list>
+        </property>
+        <!--<property name="properties" ref="secApplicationProperties"/>-->
+    </bean>
+
+    <!--<bean id="secApplicationProperties" class="com.jd.security.configsec.spring.config.JDSecurityPropertyFactoryBean">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="secLocation" value="classpath:prop/important.properties"/>
+    </bean>-->
+
+
+    <!--导入xml文件  spring-dispatch-proxy.xml    UserServiceImpl 的 @Primary 去掉  builder.getRawBeanDefinition().setPrimary(true)-->
+<!--    <import resource="classpath:/spring/spring-dispatch-proxy.xml"/>-->
+
+    <import resource="classpath:/spring/beans.xml"/>
+    <import resource="classpath:/spring/spring-bean.xml"/>
+    <import resource="classpath:/spring/spring-sequence.xml"/>
+
+<!--    <bean id="receiptsPerformImportMqListener" class="com.jd.soms.soms.receipts.perform.jmq.ReceiptsPerformImportMqListener">-->
+<!--        <constructor-arg name="ackTopic" value="${jmq.excel.input.task.ack}"/>-->
+<!--        <constructor-arg name="sendProducer" ref="producer"/>-->
+<!--    </bean>-->
+
+
+
+
+
+</beans>

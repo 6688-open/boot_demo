@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+       default-lazy-init="false" default-autowire="byName">
+
+    <!--<bean id="lbsTaskService" class="com.jd.lsb.task.service.local.TaskServiceImpl"/>
+    <bean id="conversionService" class=" com.jd.clps.btp.transport.service.conversion.vm.VelocityProxy" >
+        <property name="poolSize" value="80"/>
+        <property name="toolPackagePath" value="com.jd.clps.btp.transport.service.conversion.vm.utils"/>
+        <property name="templateManager" ref="templateManager"/>
+    </bean>-->
+
+
+    <!--<bean id="commonOutService" class="com.jd.clps.btp.transport.service.impl.CommonOutServiceImpl">
+        <property name="paramHandlerList">
+            <list>
+                <bean class="com.jd.clps.btp.transport.service.handler.KdNiaoHandler"></bean>
+            </list>
+        </property>
+    </bean>-->
+
+    <bean id="commonHttpExecutionService" class="com.dj.boot.configuration.okhttp3.common.impl.CommonHttpExecutionServiceImpl">
+        <property name="executors">
+            <map>
+                <entry key="POST_JSON" value-ref="postJsonBodyExecutor"/>
+                <entry key="POST_FORM" value-ref="postFormBodyExecutor"/>
+                <entry key="POST_XML"  value-ref="postXmlBodyExecutor"/>
+                <entry key="GET_JSON"  value-ref="getExecutor"/>
+            </map>
+        </property>
+        <!--以注入顺序执行-->
+        <property name="commonInterceptors">
+            <list>
+                <bean class="com.dj.boot.configuration.okhttp3.interceptor.support.CommonValidateInterceptor"/>
+            </list>
+        </property>
+        <!--以注入顺序执行-->
+        <property name="interceptors">
+            <map>
+                <!-- 快递鸟即时接口-->
+                <entry key="kdn">
+                    <list>
+                        <bean class="com.dj.boot.configuration.okhttp3.interceptor.KdnApiInterceptor"/>
+                    </list>
+                </entry>
+            </map>
+        </property>
+    </bean>
+    <bean id="okHttpClient" class="com.dj.boot.configuration.okhttp3.provider.OkHttpClientFactoryBean">
+        <property name="connectTimeout" value="5"/>
+        <property name="readTimeout" value="5"/>
+        <property name="writeTimeout" value="5"/>
+    </bean>
+    <bean id="postFormBodyExecutor" class="com.dj.boot.configuration.okhttp3.executor.PostFormBodyExecutor">
+        <property name="okHttpClient" ref="okHttpClient"/>
+    </bean>
+    <bean id="postJsonBodyExecutor" class="com.dj.boot.configuration.okhttp3.executor.PostJsonBodyExecutor">
+        <property name="okHttpClient" ref="okHttpClient"/>
+        <property name="serializers">
+            <map value-type="com.dj.boot.configuration.okhttp3.serializer.ParamsSerializer">
+                <entry key="fixedJsonSerializer" value-ref="fixedJsonSerializer"/>
+                <entry key="fixed" value-ref="fixedValueSerializer"/>
+            </map>
+        </property>
+    </bean>
+    <bean id="postXmlBodyExecutor" class="com.dj.boot.configuration.okhttp3.executor.PostXmlBodyExecutor">
+        <property name="okHttpClient" ref="okHttpClient"/>
+        <property name="serializers">
+            <map value-type="com.dj.boot.configuration.okhttp3.serializer.ParamsSerializer">
+            </map>
+        </property>
+    </bean>
+    <bean id="getExecutor" class="com.dj.boot.configuration.okhttp3.executor.GetExecutor">
+        <property name="okHttpClient" ref="okHttpClient"/>
+    </bean>
+    <bean id="fixedJsonSerializer" class="com.dj.boot.configuration.okhttp3.serializer.support.FiexedJsonStrParamsSerializer"/>
+    <bean id="fixedValueSerializer" class="com.dj.boot.configuration.okhttp3.serializer.support.FixedValueParamSerializer"/>
+
+
+
+
+</beans>

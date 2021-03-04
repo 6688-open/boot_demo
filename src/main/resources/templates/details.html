@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>TEST</title>
+</head>
+<script th:src="@{/jquery-1.12.4.min.js}"></script>
+<script th:src="@{/layer/layer.js}"></script>
+<script th:src="@{/jquery-validation-1.14.0/dist/jquery.validate.min.js}"></script>
+<script th:src="@{/jquery-validation-1.14.0/dist/localization/messages_zh.js}"></script>
+<style>
+    .error{
+        color:red;
+    }
+</style>
+<body>
+<center>
+
+    <h2>hello boot!11</h2>
+    <form id="fm">
+         账号: <input  name="userName" id = "userName"  /><br>
+         密码: <input  name="password" id = "password"  /> <br>
+
+        <p>
+            <input type="button" value="login" onclick="login()">
+            <a href="toLogin"> 已有账号?前去登录</a>
+        </p>
+    </form>
+
+</center>
+</body>
+<script>
+    function login() {
+        debugger;
+        // 非空校验
+        var loginacct = $("#userName").val();
+        var userpswd = $("#password").val();
+        if (loginacct === "") {
+            layer.msg("用户登录账号不能为空，请输入", {time: 2000, icon: 5, shift: 6}, function () {
+            });
+            return;
+        }
+        if (userpswd === "") {
+            //alert("用户登录密码不能为空，请输入");
+            layer.msg("用户登录密码不能为空，请输入", {time: 2000, icon: 5, shift: 6}, function () {
+            });
+            return;
+        }
+
+        // 提交表单
+        // alert("提交表单");
+        //$("#loginForm").submit();
+        // 使用AJAX提交数据
+        var loadingIndex = null;
+        var  user = {};
+        user['userName']= loginacct;
+        user['password']= userpswd;
+
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "user/list",
+            data: JSON.stringify(user),
+            beforeSend: function () {
+                loadingIndex = layer.msg('处理中',{time: 2000, icon: 5, shift: 6});
+            }, success: function (result) {
+                layer.close(loadingIndex);
+                if (result.code === 200) {
+                    layer.msg("success", {time: 2000, icon: 5, shift: 6});
+                    window.location.href = "https://mail.qq.com";
+                } else {
+                    layer.msg("用户登录账号或密码不正确，请重新输入", {time: 2000, icon: 5, shift: 6}, function () {
+                    });
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+</script>
+</html>
