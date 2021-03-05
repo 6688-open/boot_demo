@@ -580,7 +580,6 @@ public class UserController {
      * @throws Exception
      */
     @RequestMapping(value = "getTenantId.do")
-    @ResponseBody
     public Response getTenantId(String id, String type) throws Exception {
         Response response = Response.success();
         if (StringUtils.isBlank(id) || StringUtils.isBlank(type)) {
@@ -646,7 +645,6 @@ public class UserController {
      * @return errors
      */
     @RequestMapping(value = "getAllSeller.do")
-    @ResponseBody
     public Object getAllSeller(String sellerName,String query) throws Exception {
         if(StringUtils.isBlank(sellerName)){
             sellerName = query;
@@ -682,6 +680,14 @@ public class UserController {
 
 
 
+
+
+    @RequestMapping(value = "exportEventOrderDetailPage.do")
+    public Object exportEventOrderDetailPage(User user) throws Exception {
+
+        logger.error("exportEventOrderDetailPage-->入参:{}", JSONObject.toJSONString(user));
+        return null;
+    }
 
 
 
