@@ -182,6 +182,8 @@ public class GoodsController {
                 if (!level3Map.containsKey(key)) {// 防重
                     level3List.add(this.buildGoodsCategoryFormDto(3, key, thirdCategoryNameParam, tenantId, userPin));
                     level3Map.put(key, key);
+                } else {
+                    msg.append("导入文件中三级类目[").append(key).append("]有重复数据,");
                 }
             }
             if (StringUtils.isNotEmpty(fourthCategoryName)) {// 四级类目
@@ -222,7 +224,7 @@ public class GoodsController {
         // 全部成功
         StringBuilder resMsg = new StringBuilder();
         if (successNum > 0 && successNum == count) {
-            resMsg.append("导入成功.");
+            resMsg.append("导入成功."+msg);
         } else if (successNum > 0 && successNum < count) {
             resMsg.append("部分成功.");
             resMsg.append(msg);
