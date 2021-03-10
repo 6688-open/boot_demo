@@ -1,11 +1,13 @@
 package com.dj.boot.controller.tenant;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.dj.boot.common.base.Request;
 import com.dj.boot.common.base.Response;
 import com.dj.boot.common.constant.ExcelConstant;
 import com.dj.boot.common.enums.StartOrStop;
 import com.dj.boot.common.excel.exc.ExcelUtil;
+import com.dj.boot.common.util.collection.CollectionUtils;
 import com.dj.boot.controller.tenant.vo.GoodsVo;
 import com.dj.boot.pojo.User;
 import com.dj.boot.pojo.goods.CategoryViewCondition;
@@ -76,7 +78,19 @@ public class GoodsController {
             //以编码分组
             Map<String, String> map = goodsVosList.stream().collect(Collectors.groupingBy(GoodsVo::getGoods, Collectors.collectingAndThen(Collectors.toList(), value -> value.get(0).getGoodsDesc())));
 
-            List<GoodsVo> voList = goodsVosList.stream().filter(goodsVo -> goodsVo.getGoods().length() == 6).collect(Collectors.toList());
+            List<GoodsVo> voList = goodsVosList.stream().filter(goodsVo -> goodsVo.getGoods().length() >= 6).collect(Collectors.toList());
+            List<GoodsVo> voList2 = goodsVosList.stream().filter(goodsVo -> goodsVo.getGoods().length() == 4).collect(Collectors.toList());
+            List<GoodsVo> voList1 = goodsVosList.stream().filter(goodsVo -> goodsVo.getGoods().length() == 2).collect(Collectors.toList());
+            goodsVosList.removeAll(voList);
+            goodsVosList.removeAll(voList2);
+            goodsVosList.removeAll(voList1);
+
+            if (CollectionUtils.isNotEmpty(goodsVosList)) {
+                response.setCode(300);
+                response.setMsg("导入数据有问题 请检查"+ JSONObject.toJSONString(goodsVosList));
+                return response;
+            }
+
             List<List<String>> rowList = new ArrayList<>();
 
             //以名称分组会重复  编码+名称  在去除后缀
@@ -151,37 +165,37 @@ public class GoodsController {
             // Map
             if (StringUtils.isNotEmpty(firstCategoryName)) {// 一级类目
                 String key = firstCategoryName;
-                if (level1Map.get(key) == null) {// 防重
+                if (!level1Map.containsKey(key)) {// 防重
                     level1List.add(this.buildGoodsCategoryFormDto(1, key, firstCategoryNameParam, tenantId, userPin));
-                    level1Map.put(key, "");
+                    level1Map.put(key, key);
                 }
             }
             if (StringUtils.isNotEmpty(secondCategoryName)) {// 二级类目
                 String key = firstCategoryName + "-" + secondCategoryName;
-                if (level2Map.get(key) == null) {// 防重
+                if (!level2Map.containsKey(key)) {// 防重
                     level2List.add(this.buildGoodsCategoryFormDto(2, key, secondCategoryNameParam, tenantId, userPin));
-                    level2Map.put(key, "");
+                    level2Map.put(key, key);
                 }
             }
             if (StringUtils.isNotEmpty(thirdCategoryName)) {// 三级类目
                 String key = firstCategoryName + "-" + secondCategoryName + "-" + thirdCategoryName;
-                if (level3Map.get(key) == null) {// 防重
+                if (!level3Map.containsKey(key)) {// 防重
                     level3List.add(this.buildGoodsCategoryFormDto(3, key, thirdCategoryNameParam, tenantId, userPin));
-                    level3Map.put(key, "");
+                    level3Map.put(key, key);
                 }
             }
             if (StringUtils.isNotEmpty(fourthCategoryName)) {// 四级类目
                 String key = firstCategoryName + "-" + secondCategoryName + "-" + thirdCategoryName + "-" + fourthCategoryName;
-                if (level4Map.get(key) == null) {// 防重
+                if (!level4Map.containsKey(key)) {// 防重
                     level4List.add(this.buildGoodsCategoryFormDto(4, key, fourthCategoryName, tenantId, userPin));
-                    level4Map.put(key, "");
+                    level4Map.put(key, key);
                 }
             }
             if (StringUtils.isNotEmpty(fifthCategoryName)) {// 五级类目
                 String key = firstCategoryName + "-" + secondCategoryName + "-" + thirdCategoryName + "-" + fourthCategoryName + "-" + fifthCategoryName;
-                if (level5Map.get(key) == null) {// 防重
+                if (!level5Map.containsKey(key)) {// 防重
                     level5List.add(this.buildGoodsCategoryFormDto(5, key, fifthCategoryName, tenantId, userPin));
-                    level5Map.put(key, "");
+                    level5Map.put(key, key);
                 }
             }
             successNum++;
