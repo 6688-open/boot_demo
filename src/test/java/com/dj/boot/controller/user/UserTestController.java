@@ -6,6 +6,7 @@ import com.dj.boot.common.util.security.Sha256Utils;
 import com.dj.boot.pojo.User;
 import com.dj.boot.pojo.UserDto;
 import com.dj.boot.service.user.UserService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,10 @@ public class UserTestController extends BootDemoApplicationTests {
 
     @Override
     public void run() throws Exception {
+
+        List<User> userList = userService.findUserListByCondition(new UserDto());
+        String str = resolverFlowConditions(userList);
+        System.out.println(str);
 
         UserDto userDto = new UserDto();
 
@@ -94,6 +99,29 @@ public class UserTestController extends BootDemoApplicationTests {
                 .append("schoolId=").append(schoolId).append("&")
                 .append("companyId=").append(companyId)
                 .append(extendUrl);
+    }
+
+
+
+
+
+    private String resolverFlowConditions(List<User> userList) {
+        StringBuilder msg = new StringBuilder();
+        if (CollectionUtils.isNotEmpty(userList)) {
+            msg.append("状态流水:[");
+            Integer no = 1;
+            for (User user : userList) {
+                String sb = "zs,lisi,";
+                msg.append(no).append(".{")
+                        .append("(").append(user.getId()).append(")-")
+                        .append("(").append(user.getUserName()).append(")-")
+                        .append("(").append(sb).append(")-")
+                        .append("(").append(user.getPassword()).append(")} ");
+                no++;
+            }
+            msg.append("]");
+        }
+        return msg.toString();
     }
 
 
