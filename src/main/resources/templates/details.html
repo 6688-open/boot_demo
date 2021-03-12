@@ -12,6 +12,21 @@
     .error{
         color:red;
     }
+    .msgNum {
+        background: #f00;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        top: -6px;
+        position: relative;
+        text-align: center;
+        bottom: 15px;
+        left: -22px;
+        color: #FFF;
+        padding: 2px 7px;  /* 不需要定义height与width，添加合适的padding使圆圈随字符长短变化而改变 */
+        z-index: 99999;
+
+    }
 </style>
 <body>
 <center>
@@ -26,6 +41,21 @@
             <a href="toLogin"> 已有账号?前去登录</a>
         </p>
     </form>
+
+    <input id="currentTopMenuIdValue"  value="00001" />
+    <input id="currentTopMenuIdName"  value="00002" />
+
+
+    <div>
+        <ul>
+            <li id="top_1" style="color: blue; font-size: 20px; font-weight: bold" name="客服中心" class="form_li" onclick="clickFirstMenu('1', '客服中心');expandDefaultMenu('1');">客服中心</li>
+            <li id="top_2" style="color: blue; font-size: 20px; font-weight: bold" name="业务管理" class="form_li" onclick="clickFirstMenu('2', '业务管理');expandDefaultMenu('2');">业务管理</li>
+            <li id="top_3" style="color: blue; font-size: 20px; font-weight: bold" name="库存管理" class="form_li" onclick="clickFirstMenu('3', '库存管理');expandDefaultMenu('3');">库存管理</li>
+            <li id="top_4" style="color: blue; font-size: 20px; font-weight: bold" name="消息" class="form_li" onclick="clickFirstMenu('4', '消息');expandDefaultMenu('4');">消息</li>
+        </ul>
+
+
+    </div>
 
 
 
@@ -230,6 +260,31 @@ function ajaxRefreshAble () {
         return;
     }
 }*/
+
+
+
+
+
+function clickFirstMenu(id, name) {
+    if(name == '消息') {
+        $("#msgNum").text("0");
+    }
+    $('#currentTopMenuIdValue').attr("value", id);
+    $('#currentTopMenuIdName').attr("value", name);
+}
+
+function expandDefaultMenu(menuId) {
+
+}
+
+
+
+
+
+
+
+
+
 
 
     function login() {
